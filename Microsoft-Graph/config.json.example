@@ -1,0 +1,9 @@
+{
+    "tenantid" : "d40cf7e-ad5f-xxxx-a317-14be3xxxxef",
+    "appID" : "axxxxxf-3ab0-xxxxxaf-1ac76xxx",
+    "appSecret" : "b@7asdfasdfasdfasdadsAtxG0ZXFYSyAaA",
+    "MDATP" : {
+        "signinURL" : "https://api-us.securitycenter.windows.com/api/",
+        "resourceAppIdUri" : "https://api.securitycenter.windows.com"
+    }
+}
