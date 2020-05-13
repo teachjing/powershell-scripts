@@ -3,7 +3,7 @@
 
 #Loads the module
 $moduleName = "RandomGeneratedUser"
-Import-Module ".\$($moduleName).psm1" -Force #loads the module and force it to reload if changes are made.
+Import-Module "..\$($moduleName).psm1" -Force #loads the module and force it to reload if changes are made.
 
 Write-Host "`nThe following commands have been imported: "
 Get-Command -Module $moduleName
@@ -16,3 +16,4 @@ $user
 
 #outputs the json to grab other objects
 #$user.json
+

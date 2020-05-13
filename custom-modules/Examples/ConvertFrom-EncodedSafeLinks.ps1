@@ -3,7 +3,7 @@
 
 #Loads the module
 $moduleName = "ConvertFrom-EncodedSafeLinks"
-Import-Module ".\$($moduleName).psm1" -Force  #loads the module and force it to reload if changes are made.
+Import-Module "..\$($moduleName).psm1" -Force  #loads the module and force it to reload if changes are made.
 
 Write-Host "`nThe following commands have been imported: "
 Get-Command -Module $moduleName
@@ -16,5 +16,6 @@ $EncodedURL = "https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2
 $Converted = ConvertFrom-EncodedSafeLinks($EncodedURL)
 
 Write-Host "`nHere is the decoded information"
-$Converted
+Write-Host "Your Email is $($Converted.email)"
+Write-Host "Your URL is $($Converted.URL)"
 

@@ -8,7 +8,6 @@ $wshell = New-Object -comObject Wscript.Shell
 $dateTime = Get-Date 
 [void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
 
-
 #Launches the session as the current user + Administrator rights
 $myWindowsID = [System.Security.Principal.WindowsIdentity]::GetCurrent()
 $myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myWindowsID)
