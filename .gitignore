@@ -1,3 +1,5 @@
+.gitignore
 config.json
 Unsorted/
-Unsorted/*.*
+Unsorted/*
+/Unsorted/*
