@@ -3,7 +3,7 @@
 #       Github - https://github.com/cammurray/orca
 #       LinkedIn Article - Reviewing your Office ATP configuration - https://www.linkedin.com/pulse/reviewing-your-office-atp-configuration-cam-murray/
 #       
-#       Requires EXO - https://aka.ms/exops-docs which will be installed by script
+#       Tool Requires Requires EXO-Connect Session - https://aka.ms/exops-docs which will be installed by script
 #
 
 function O365-checkcredentials() {
