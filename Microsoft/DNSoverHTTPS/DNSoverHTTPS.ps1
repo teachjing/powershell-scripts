@@ -143,12 +143,19 @@ if ($DnsSourceLocation -eq 0) {
         Exit
     }
 }
-$DoHServers | Format-Table
+#$DoHServers | Format-List
 $DownloadedServerList = @()
 ForEach ($server in $DoHServers) {
-    $DownloadedServerList += "$($server.Name)"
+    $DownloadedServerList += "$($server.Name) - $($server.Type)"
+    if ($server.Type -eq "static") {
+    } else {
+        $server | Add-Member -MemberType NoteProperty -Name "IPv4" -Value @()
+        [System.Net.Dns]::GetHostAddresses($server.DomainName) | foreach { $server.IPv4 += $_.IPAddressToString }
+    }
 }
-$DownloadedServerList
+#$DoHServers | Add-Member -MemberType NoteProperty -Name "IPv4" -Value $DNSArray
+$DoHServers | Format-Table
+Read-Host
 $SelectedServer = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
 
 ## Confirm if customer wants to make changes
@@ -162,14 +169,9 @@ Get-DnsClientServerAddress |
     Where-Object {($_.AddressFamily -eq [Microsoft.PowerShell.Cmdletization.GeneratedTypes.DnsClientServerAddress.AddressFamily]"IPv4") -and $_.InterfaceAlias -eq $($NetworkInterfaces[$InterfaceChoiceMenu].Name)} | 
     Format-Table
 
+
+
 <#
-Read-Prompt "Enter the name corresponding to the interface you want to set DNS: "
-
-$RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters"
-
-New-ItemProperty -Path $RegPath -Name "EnableAutoDoh" -Value 2  -PropertyType "DWORD"
-
-Get-ItemProperty -Path $RegPath
 
 pktmon filter remove
 pktmon filter add -p 53
