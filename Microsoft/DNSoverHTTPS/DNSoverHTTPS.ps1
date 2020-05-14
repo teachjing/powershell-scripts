@@ -17,7 +17,7 @@ Function Invoke-Menu (){
     Clear-Host
 
     While($EnterPressed -eq $False){
-        Write-Host -Foreground Cyan "`n`nDNS over HTTPS Powershell Quick Configurator"
+        Write-Host -Foreground Cyan "`n`nDNS over HTTPS (DoH) Powershell Quick Configurator"
         Write-Host -Foreground Yellow "`n$MenuTitle"
         Write-Host -Foreground Magenta $SubTitle
 
@@ -163,7 +163,9 @@ ForEach ($IP in $DoHServers[$SelectedServer].IPv6) { $DNSAddresses += ([IPAddres
 ## Confirm if customer wants to make changes
 $ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "`nInterface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name)`nDNS Server: $($DoHServers[$SelectedServer].Name) `nIPv4 Address: $($DoHServers[$SelectedServer].IPv4)`nIPv6 Address: $($DoHServers[$SelectedServer].IPv6)`n"
 
-Set-DnsClientServerAddress -ServerAddresses $DNSAddresses -InterfaceIndex 16
+#This removes any DNS Configuration and adds the new info
+Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ResetServerAddresses
+Set-DnsClientServerAddress -ServerAddresses $DNSAddresses -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex
 
 #Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses $($DoHServers[$SelectedServer].IPv6)
 ## Grab DNS Configuration and filter by IPv4. ##Note had to enumerate the AddressFamily because it returns as a value and not the actual text
@@ -172,8 +174,6 @@ Write-Host -ForegroundColor Yellow "`n$($NetworkInterfaces[$InterfaceChoiceMenu]
 Get-DnsClientServerAddress | 
     Where-Object {$_.InterfaceAlias -eq $($NetworkInterfaces[$InterfaceChoiceMenu].Name)} | 
     Format-Table
-
-
 
 <#
 
