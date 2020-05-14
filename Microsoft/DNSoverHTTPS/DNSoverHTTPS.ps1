@@ -146,6 +146,7 @@ if ($DnsSourceLocation -eq 0) {
 
 #Goes through list of servers and builds menu
 $DownloadedServerList = @()
+$DNSAddresses = @()
 ForEach ($server in $DoHServers) {
     $DownloadedServerList += "$($server.Name) - $($server.Type)"
     if ($server.Type -eq "static") {
@@ -155,20 +156,21 @@ ForEach ($server in $DoHServers) {
     }
 }
 
-#$DoHServers | Add-Member -MemberType NoteProperty -Name "IPv4" -Value $DNSArray
-#$DoHServers | Format-Table
-#Read-Host
 $SelectedServer = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
+ForEach ($IP in $DoHServers[$SelectedServer].IPv4) { $DNSAddresses += ([IPAddress]$IP).IPAddressToString }
+ForEach ($IP in $DoHServers[$SelectedServer].IPv6) { $DNSAddresses += ([IPAddress]$IP).IPAddressToString }
 
 ## Confirm if customer wants to make changes
-$ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "`nInterface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name)`nDNS Server: $($DoHServers[$SelectedServer].Name) `nIPv4 Address: $($DoHServers[$SelectedServer].IPv4)`n"
+$ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "`nInterface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name)`nDNS Server: $($DoHServers[$SelectedServer].Name) `nIPv4 Address: $($DoHServers[$SelectedServer].IPv4)`nIPv6 Address: $($DoHServers[$SelectedServer].IPv6)`n"
 
-Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses $($DoHServers[$SelectedServer].IPv4)
+Set-DnsClientServerAddress -ServerAddresses $DNSAddresses -InterfaceIndex 16
+
+#Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses $($DoHServers[$SelectedServer].IPv6)
 ## Grab DNS Configuration and filter by IPv4. ##Note had to enumerate the AddressFamily because it returns as a value and not the actual text
 
-Write-Host -ForegroundColor Yellow "`n$($NetworkInterfaces[$InterfaceChoiceMenu].Name) interface configured with $($DoHServers[$SelectedServer].Name) IPv4 addresses."
+Write-Host -ForegroundColor Yellow "`n$($NetworkInterfaces[$InterfaceChoiceMenu].Name) interface configured with $($DoHServers[$SelectedServer].Name) IPv4/IPv6 addresses."
 Get-DnsClientServerAddress | 
-    Where-Object {($_.AddressFamily -eq [Microsoft.PowerShell.Cmdletization.GeneratedTypes.DnsClientServerAddress.AddressFamily]"IPv4") -and $_.InterfaceAlias -eq $($NetworkInterfaces[$InterfaceChoiceMenu].Name)} | 
+    Where-Object {$_.InterfaceAlias -eq $($NetworkInterfaces[$InterfaceChoiceMenu].Name)} | 
     Format-Table
 
 
