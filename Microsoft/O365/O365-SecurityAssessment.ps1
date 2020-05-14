@@ -26,7 +26,7 @@ function O365-checkcredentials() {
 }
 
 ## Check dependencies and update modules ##
-$dependencies = @('PowershellGet', 'ExchangeOnlineManagement', 'ORCA')
+$dependencies = @('ExchangeOnlineManagement', 'ORCA')
 ForEach ($module in $dependencies) {
     if ($exist = Get-Module $module) {
         Write-Host -ForegroundColor Green "$($module) is installed. Updating."
@@ -35,6 +35,7 @@ ForEach ($module in $dependencies) {
         Install-Module $module
     }
     Update-Module $module
+    Import-Module $module
 }
 Get-Module | Where-Object {$_.Name -in $dependencies}
 
