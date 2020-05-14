@@ -1,10 +1,6 @@
-﻿$PublicDNSServers = Get-Content -raw -Path ".\DoH-Servers.json" | ConvertFrom-Json
-
-#Imports JSON data to get up to date Server list
-#$DoHServers = iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/jingsta/powershell-scripts/master/Microsoft/DNSoverHTTPS/DoH-Servers.json")) | ConvertFrom-Json
-
-#$DoHServers = $web_client.DownloadString("https://github.com/jingsta/powershell-scripts/blob/master/Microsoft/DNSoverHTTPS/DoH-Servers.json") | ConvertFrom-Json
-$DoHServers
+﻿#Downloads updated list from github repo
+$DoHServersURL = "https://raw.githubusercontent.com/jingsta/powershell-scripts/master/Microsoft/DNSoverHTTPS/DoH-Servers.json"
+$LocalServersFile = "./MyLocalFile.json"
 
 Function Invoke-Menu (){
     
@@ -44,7 +40,15 @@ Function Invoke-Menu (){
                 Clear-Host
                 break
             }
-
+            37{
+                If ($Selection -eq 0){
+                    $Selection = $MaxValue
+                } Else {
+                    $Selection -= 1
+                }
+                Clear-Host
+                break
+            }
             38{
                 If ($Selection -eq 0){
                     $Selection = $MaxValue
@@ -54,7 +58,15 @@ Function Invoke-Menu (){
                 Clear-Host
                 break
             }
-
+            39{
+                If ($Selection -eq $MaxValue){
+                    $Selection = 0
+                } Else {
+                    $Selection +=1
+                }
+                Clear-Host
+                break
+            }
             40{
                 If ($Selection -eq $MaxValue){
                     $Selection = 0
@@ -70,7 +82,6 @@ Function Invoke-Menu (){
         }
     }
 }
-
 function New-Menu {
     Param(
         [Parameter(Mandatory=$True)][String]$MenuTitle,
@@ -83,6 +94,7 @@ function New-Menu {
     return $MenuResult
 }
 
+#Verify if user is using Windows Insider Build
 $InsiderBuildCheck = New-Menu -MenuTitle "Currently DNS over HTTPS only works in the insider build ATM, are you running an insider build?" -MenuOptions @("Yes","No")
 if($InsiderBuildCheck -eq 1) {Write-Host -Foreground Red "Get on the insider build and try again"; exit} 
 
@@ -98,25 +110,48 @@ Write-Host -Foreground Green "DNS over HTTPS 'EnableAuthDoh' Registry Item looks
 Write-Host "Press any key to continue..." 
 Read-Host 
 
+# Map Interfaces
 $InterfaceMenuOptions = @()
-$NetworkInterfaces = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} |
+$NetworkInterfaces = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} |    ## identify interfaces
     ForEach-Object {
        $InterfaceMenuOptions += "$($_.Name) - $($_.InterfaceDescription) - $($_.MacAddress)"
        $_
     }
-
-## Prompt user to choose interface to configure DNS for 
+## Prompt user to choose interface to configure DNS over HTTPS (DOH)
 $InterfaceChoiceMenu = New-Menu -MenuTitle "Please Choose which interface to configure HTTPS over DNS:" -MenuOptions $InterfaceMenuOptions
 Write-Host -Foreground Green "`n$($NetworkInterfaces[$InterfaceChoiceMenu].Name) - $($NetworkInterfaces[$InterfaceChoiceMenu].MacAddress) Selected."
 Write-Host "Configuring DNS Server for '$($NetworkInterfaces[$InterfaceChoiceMenu].Name)' Interface"
 
 ## Prompt user to choose DNS Server Owner Location
-$DNSChoiceMenu = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $PublicDNSServers
+$DnsSourceLocation = New-Menu -MenuTitle "Choose a source location to grab DoH Servers from:" -MenuOptions ( "Online - Github Repo '$($DoHServersURL)'", "Local file $($LocalServersFile)" )
+if ($DnsSourceLocation -eq 0) {
+    Write-Host -Foreground Yellow "`nDownloading DoH server list from Github"
+    Write-Host "`tURL: '$($DoHServersURL)'`n"
+    Try {
+        $DoHServers = (New-Object System.Net.WebClient).DownloadString($DoHServersURL) | ConvertFrom-Json
+    } Catch {
+        Write-Host -ForegroundColor Red "Had a problem downloading JSON from github repo"
+        Exit
+    }
+} else {
+    Write-Host -ForegroundColor Yellow "`nDownloading DoH server list from local file"
+    Try {
+        $DoHServers = Get-Content -Raw -Path $LocalServersFile | ConvertFrom-Json
+    } Catch {
+        Write-Host -ForegroundColor Red "Had a problem downloading servers from local file"
+        Exit
+    }
+}
+$DoHServers | Format-Table
+$DownloadedServerList = @()
+ForEach ($server in $DoHServers) {
+    $DownloadedServerList += $server.Name
+}
+$DNSChoiceMenu = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
 
 ## Confirm if customer wants to make changes
 $ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "Interface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name), DNS Server: $($PublicDNSServers[$DNSChoiceMenu])"
 if($InsiderBuildCheck -eq 1) {exit}
-
 
 Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses ("8.8.8.8","4.4.4.4")
 ## Grab DNS Configuration and filter by IPv4. ##Note had to enumerate the AddressFamily because it returns as a value and not the actual text
