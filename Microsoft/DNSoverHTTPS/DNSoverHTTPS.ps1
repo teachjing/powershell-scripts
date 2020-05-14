@@ -1,4 +1,10 @@
-﻿$PublicDNSServers = ConvertFrom-Json(Get-Content -Path ".\DoH-Servers.json")
+﻿$PublicDNSServers = Get-Content -raw -Path ".\DoH-Servers.json" | ConvertFrom-Json
+
+#Imports JSON data to get up to date Server list
+#$DoHServers = iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/jingsta/powershell-scripts/master/Microsoft/DNSoverHTTPS/DoH-Servers.json")) | ConvertFrom-Json
+
+#$DoHServers = $web_client.DownloadString("https://github.com/jingsta/powershell-scripts/blob/master/Microsoft/DNSoverHTTPS/DoH-Servers.json") | ConvertFrom-Json
+$DoHServers
 
 Function Invoke-Menu (){
     
