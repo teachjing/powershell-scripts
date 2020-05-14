@@ -98,13 +98,14 @@ function New-Menu {
 $InsiderBuildCheck = New-Menu -MenuTitle "Currently DNS over HTTPS only works in the insider build ATM, are you running an insider build?" -MenuOptions @("Yes","No")
 if($InsiderBuildCheck -eq 1) {Write-Host -Foreground Red "Get on the insider build and try again"; exit} 
 
+#Check registry to see if DoH is configured properly for Insider Build
 $RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters"
 $DohRegistryCheck = Get-ItemProperty -Path $RegPath
 if(!$DohRegistryCheck.EnableAutoDoh) {
     Write-Host "Not Enabled"
     Exit
 }
-
+Write-Host -ForegroundColor Black -BackgroundColor Yellow "`nRegistry Settings at '$($RegPath)'"
 $DohRegistryCheck
 Write-Host -Foreground Green "DNS over HTTPS 'EnableAuthDoh' Registry Item looks to be configured correctly [2]"
 Write-Host "Press any key to continue..." 
@@ -145,17 +146,21 @@ if ($DnsSourceLocation -eq 0) {
 $DoHServers | Format-Table
 $DownloadedServerList = @()
 ForEach ($server in $DoHServers) {
-    $DownloadedServerList += $server.Name
+    $DownloadedServerList += "$($server.Name)"
 }
-$DNSChoiceMenu = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
+$DownloadedServerList
+$SelectedServer = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
 
 ## Confirm if customer wants to make changes
-$ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "Interface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name), DNS Server: $($PublicDNSServers[$DNSChoiceMenu])"
-if($InsiderBuildCheck -eq 1) {exit}
+$ConfirmChanges = New-Menu -MenuTitle "Please confirm Configuration prior to change" -MenuOptions @('Yes',"No") -SubTitle "`nInterface: $($NetworkInterfaces[$InterfaceChoiceMenu].Name)`nDNS Server: $($DoHServers[$SelectedServer].Name) `nIPv4 Address: $($DoHServers[$SelectedServer].IPv4)`n"
 
-Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses ("8.8.8.8","4.4.4.4")
+Set-DnsClientServerAddress -InterfaceIndex $NetworkInterfaces[$InterfaceChoiceMenu].ifIndex -ServerAddresses $($DoHServers[$SelectedServer].IPv4)
 ## Grab DNS Configuration and filter by IPv4. ##Note had to enumerate the AddressFamily because it returns as a value and not the actual text
-Get-DnsClientServerAddress | Where-Object {$_.AddressFamily -eq [Microsoft.PowerShell.Cmdletization.GeneratedTypes.DnsClientServerAddress.AddressFamily]"IPv4"}
+
+Write-Host -ForegroundColor Yellow "`n$($NetworkInterfaces[$InterfaceChoiceMenu].Name) interface configured with $($DoHServers[$SelectedServer].Name) IPv4 addresses."
+Get-DnsClientServerAddress | 
+    Where-Object {($_.AddressFamily -eq [Microsoft.PowerShell.Cmdletization.GeneratedTypes.DnsClientServerAddress.AddressFamily]"IPv4") -and $_.InterfaceAlias -eq $($NetworkInterfaces[$InterfaceChoiceMenu].Name)} | 
+    Format-Table
 
 <#
 Read-Prompt "Enter the name corresponding to the interface you want to set DNS: "
