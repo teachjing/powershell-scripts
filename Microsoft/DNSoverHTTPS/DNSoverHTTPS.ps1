@@ -143,7 +143,8 @@ if ($DnsSourceLocation -eq 0) {
         Exit
     }
 }
-#$DoHServers | Format-List
+
+#Goes through list of servers and builds menu
 $DownloadedServerList = @()
 ForEach ($server in $DoHServers) {
     $DownloadedServerList += "$($server.Name) - $($server.Type)"
@@ -153,9 +154,10 @@ ForEach ($server in $DoHServers) {
         [System.Net.Dns]::GetHostAddresses($server.DomainName) | foreach { $server.IPv4 += $_.IPAddressToString }
     }
 }
+
 #$DoHServers | Add-Member -MemberType NoteProperty -Name "IPv4" -Value $DNSArray
-$DoHServers | Format-Table
-Read-Host
+#$DoHServers | Format-Table
+#Read-Host
 $SelectedServer = New-Menu -MenuTitle "Choose a Public DNS Server to configure the Interface with:" -MenuOptions $DownloadedServerList
 
 ## Confirm if customer wants to make changes
