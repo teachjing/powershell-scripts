@@ -18,5 +18,7 @@ cd .\powershell-scripts\Microsoft\O365\
 | Exchange Online PowerShell V2 module | https://aka.ms/exops-docs |
 | Enable-PSRemoting | [Documentation]( https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/enable-psremoting?view=powershell-7) |
 
-FYI - If you are running Powershell 7 - 
-You may get errors with Exchange Online "Could not load type 'System.Security.Cryptography.SHA256Cng'". The code needs to be updated. You will need to use standard Windows Powershell to work.
+## FYI
+The Exchange Online Remote PowerShell Module is not supported in PowerShell Core (macOS, Linux, or Windows Nano Server). As a workaround, you can install the module on a computer that's running a supported version of Windows (physical or virtual), and use remote desktop software to connect.
+
+To use the new Exchange Online PowerShell V2 module (which also supports MFA), see Use the Exchange Online PowerShell V2 module.)
