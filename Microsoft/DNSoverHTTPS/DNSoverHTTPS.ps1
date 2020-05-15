@@ -118,6 +118,7 @@ $NetworkInterfaces = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} |    ## 
        $InterfaceMenuOptions += "$($_.Name) - $($_.InterfaceDescription) - $($_.MacAddress)"
        $_
     }
+
 ## Prompt user to choose interface to configure DNS over HTTPS (DOH)
 $InterfaceChoiceMenu = New-Menu -MenuTitle "Please Choose which interface to configure HTTPS over DNS:" -MenuOptions $InterfaceMenuOptions
 Write-Host -Foreground Green "`n$($NetworkInterfaces[$InterfaceChoiceMenu].Name) - $($NetworkInterfaces[$InterfaceChoiceMenu].MacAddress) Selected."
