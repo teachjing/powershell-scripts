@@ -102,8 +102,8 @@ if($InsiderBuildCheck -eq 1) {Write-Host -Foreground Red "Get on the insider bui
 $RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters"
 $DohRegistryCheck = Get-ItemProperty -Path $RegPath
 if(!$DohRegistryCheck.EnableAutoDoh) {
-    Write-Host "Not Enabled"
-    Exit
+    Read-Host "Not Enabled, Press Enter to add registry key"
+    New-ItemProperty -Path $RegPath -Name "EnableAutoDoh" -Value 2  -PropertyType "DWORD"
 }
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "`nRegistry Settings at '$($RegPath)'"
 $DohRegistryCheck
