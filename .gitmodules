@@ -1,0 +1,3 @@
+[submodule ".\\github-repos\\BornToBeRoot"]
+	path = .\\github-repos\\BornToBeRoot
+	url = https://github.com/BornToBeRoot/PowerShell.git
